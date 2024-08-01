@@ -13,14 +13,11 @@ use App\Models\Label;
 class TaskController extends Controller
 {
     public function index()
-    {
+{
+    $tasks = Task::select('id', 'name')->get();
+    return response()->json($tasks);
+}
 
-        $tasks = Task::all();
-
-        return view('tasks.index', [
-            'tasks' => $tasks
-        ]);
-    }
 
     public function create()
     {
@@ -104,6 +101,39 @@ class TaskController extends Controller
         return redirect('/tasks');
     }
     
+
+    public function getUserTasks($userId)
+{
+    $tasks = Task::where('user_id', $userId)->select('id', 'name')->get();
+    return response()->json($tasks);
+}
+
+public function updateTask(Request $request, $taskId)
+{
+    // Validar los datos de la solicitud
+    $validatedData = $request->validate([
+        'name' => 'required|string|max:255',
+        'description' => 'nullable|string',
+    ]);
+
+    // Encontrar la tarea y actualizar solo los campos permitidos
+    $task = Task::findOrFail($taskId);
+    $task->name = $validatedData['name'];
+    $task->description = $validatedData['description'];
+    $task->save();
+
+    return response()->json(['message' => 'Task updated successfully', 'task' => $task]);
+}
+
+public function deleteTask($taskId)
+{
+    // Encontrar la tarea y eliminarla
+    $task = Task::findOrFail($taskId);
+    $task->delete();
+
+    return response()->json(['message' => 'Task deleted successfully']);
+}
+
 
     
 }
